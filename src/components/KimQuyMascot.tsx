@@ -9,6 +9,20 @@ interface Message {
   text: string;
 }
 
+// Remove markdown formatting from AI response
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1')  // **bold** → bold
+    .replace(/\*(.*?)\*/g, '$1')       // *italic* → italic
+    .replace(/__(.*?)__/g, '$1')       // __bold__ → bold
+    .replace(/_(.*?)_/g, '$1')         // _italic_ → italic
+    .replace(/```[\s\S]*?```/g, '')    // Remove code blocks
+    .replace(/`(.*?)`/g, '$1')         // `code` → code
+    .replace(/^#+\s*/gm, '')           // Remove headers
+    .replace(/^\s*[-*+]\s+/gm, '• ')   // Convert list items to bullets
+    .trim();
+}
+
 export default function KimQuyMascot() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([
@@ -118,11 +132,11 @@ Logic Hành động:
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
-    
+
     if (!chatRef.current) {
-      setMessages(prev => [...prev, { 
-        role: 'model', 
-        text: 'Bản thần chưa được kích hoạt. Vui lòng cấu hình Gemini API key trong file .env.local' 
+      setMessages(prev => [...prev, {
+        role: 'model',
+        text: 'Bản thần chưa được kích hoạt. Vui lòng cấu hình Gemini API key trong file .env.local'
       }]);
       return;
     }
@@ -131,7 +145,8 @@ Logic Hành động:
 
     try {
       const response = await chatRef.current.sendMessage({ message: userMsg });
-      setMessages(prev => [...prev, { role: 'model', text: response.text }]);
+      const cleanText = stripMarkdown(response.text);
+      setMessages(prev => [...prev, { role: 'model', text: cleanText }]);
     } catch (error) {
       console.error("Chat error:", error);
       setMessages(prev => [...prev, { role: 'model', text: 'Thiên cơ bất khả lộ... (Có lỗi kết nối, vui lòng thử lại sau)' }]);
