@@ -1,14 +1,21 @@
 import { GoogleGenAI } from "@google/genai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
 export async function generateGoldenTurtleImage() {
   try {
+    // Check if API key is configured
+    const apiKey = process.env.GEMINI_API_KEY;
+    if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+      console.warn('Gemini API key not configured. Using default turtle image.');
+      return null;
+    }
+
+    const ai = new GoogleGenAI({ apiKey });
+
     // Fetch the existing image to use as a reference
     const responseImg = await fetch('/img/thanrua.png');
     const blob = await responseImg.blob();
     const reader = new FileReader();
-    
+
     const base64Promise = new Promise<string>((resolve) => {
       reader.onloadend = () => {
         const base64data = reader.result as string;

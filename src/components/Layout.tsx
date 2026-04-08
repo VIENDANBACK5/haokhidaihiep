@@ -3,8 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import KimQuyMascot from './KimQuyMascot';
 import ScrollToTop from './ScrollToTop';
 import LoginModal from './LoginModal';
-import { auth, logOut } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { getCurrentUser, logout, onAuthStateChanged, type User } from '../auth';
 
 export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -13,7 +12,7 @@ export default function Layout() {
   const location = useLocation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged((currentUser) => {
       setUser(currentUser);
     });
     return () => unsubscribe();
@@ -68,7 +67,7 @@ export default function Layout() {
                 <p className="text-[#D4AF37] text-xs font-bold">{user.displayName || user.email}</p>
               </div>
               <button
-                onClick={logOut}
+                onClick={logout}
                 className="bg-[#8B0000] hover:bg-[#A00000] text-[#D4AF37] font-bold py-1.5 px-3 text-xs uppercase tracking-wider transition-colors border border-[#D4AF37]/50"
               >
                 Đăng Xuất

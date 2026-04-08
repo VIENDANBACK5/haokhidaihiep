@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { auth, signInWithGoogle, signInWithFacebook } from '../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { registerWithEmail, loginWithEmail, loginWithGoogle, loginWithFacebook } from '../auth';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -22,23 +21,13 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setLoading(true);
     try {
       if (isRegister) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await registerWithEmail(email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await loginWithEmail(email, password);
       }
       onClose();
     } catch (err: any) {
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Email hoặc mật khẩu không chính xác.');
-      } else if (err.code === 'auth/email-already-in-use') {
-        setError('Email này đã được sử dụng.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Mật khẩu quá yếu (ít nhất 6 ký tự).');
-      } else if (err.code === 'auth/operation-not-allowed') {
-        setError('Tính năng đăng nhập bằng Email chưa được bật. Vui lòng bật trong Firebase Console.');
-      } else {
-        setError('Có lỗi xảy ra: ' + err.message);
-      }
+      setError(err.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
@@ -48,17 +37,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setError('');
     setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      if (user) onClose();
+      await loginWithGoogle();
+      onClose();
     } catch (err: any) {
-      console.error('Google login error:', err);
-      if (err.code === 'auth/popup-blocked') {
-        setError('Popup bị chặn. Vui lòng cho phép popup trong trình duyệt.');
-      } else if (err.code === 'auth/unauthorized-domain') {
-        setError('Domain chưa được cấu hình trong Firebase Console.');
-      } else {
-        setError('Lỗi đăng nhập Google: ' + (err.message || 'Vui lòng thử lại'));
-      }
+      setError(err.message || 'Lỗi đăng nhập Google');
     } finally {
       setLoading(false);
     }
@@ -68,17 +50,10 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setError('');
     setLoading(true);
     try {
-      const user = await signInWithFacebook();
-      if (user) onClose();
+      await loginWithFacebook();
+      onClose();
     } catch (err: any) {
-      console.error('Facebook login error:', err);
-      if (err.code === 'auth/popup-blocked') {
-        setError('Popup bị chặn. Vui lòng cho phép popup trong trình duyệt.');
-      } else if (err.code === 'auth/account-exists-with-different-credential') {
-        setError('Email đã được dùng với phương thức đăng nhập khác.');
-      } else {
-        setError('Lỗi đăng nhập Facebook: ' + (err.message || 'Kiểm tra cấu hình Firebase'));
-      }
+      setError(err.message || 'Lỗi đăng nhập Facebook');
     } finally {
       setLoading(false);
     }
