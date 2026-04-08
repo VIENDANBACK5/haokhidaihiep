@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { auth, signInWithGoogle, signInWithFacebook } from '../firebase';
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
+import { registerWithEmail, loginWithEmail, loginWithGoogle, loginWithFacebook } from '../auth';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -22,50 +21,48 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
     setLoading(true);
     try {
       if (isRegister) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        await registerWithEmail(email, password);
       } else {
-        await signInWithEmailAndPassword(auth, email, password);
+        await loginWithEmail(email, password);
       }
       onClose();
     } catch (err: any) {
-      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        setError('Email hoặc mật khẩu không chính xác.');
-      } else if (err.code === 'auth/email-already-in-use') {
-        setError('Email này đã được sử dụng.');
-      } else if (err.code === 'auth/weak-password') {
-        setError('Mật khẩu quá yếu (ít nhất 6 ký tự).');
-      } else if (err.code === 'auth/operation-not-allowed') {
-        setError('Tính năng đăng nhập bằng Email chưa được bật. Vui lòng bật trong Firebase Console.');
-      } else {
-        setError('Có lỗi xảy ra: ' + err.message);
-      }
+      setError(err.message || 'Có lỗi xảy ra');
     } finally {
       setLoading(false);
     }
   };
 
   const handleGoogle = async () => {
+    setError('');
+    setLoading(true);
     try {
-      const user = await signInWithGoogle();
-      if (user) onClose();
+      await loginWithGoogle();
+      onClose();
     } catch (err: any) {
-      setError('Lỗi đăng nhập Google.');
+      setError(err.message || 'Lỗi đăng nhập Google');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFacebook = async () => {
+    setError('');
+    setLoading(true);
     try {
-      const user = await signInWithFacebook();
-      if (user) onClose();
+      await loginWithFacebook();
+      onClose();
     } catch (err: any) {
-      setError('Lỗi đăng nhập Facebook. Vui lòng kiểm tra cấu hình Firebase.');
+      setError(err.message || 'Lỗi đăng nhập Facebook');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-[#131313] border border-[#D4AF37]/50 shadow-[0_0_30px_rgba(212,175,55,0.15)] w-full max-w-md p-8 relative">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#E5E2E1]/60 hover:text-[#D4AF37] transition-colors"
         >
@@ -85,8 +82,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#E5E2E1]/60 mb-2">Email</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -96,8 +93,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#E5E2E1]/60 mb-2">Mật khẩu</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -105,9 +102,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               placeholder="••••••••"
             />
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             disabled={loading}
             className="w-full bg-[#8B0000] hover:bg-[#A00000] text-[#D4AF37] font-bold py-3 uppercase tracking-widest transition-colors border border-[#D4AF37]/30 mt-2 disabled:opacity-50"
           >
@@ -116,7 +113,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </form>
 
         <div className="mt-4 text-center">
-          <button 
+          <button
             onClick={() => { setIsRegister(!isRegister); setError(''); }}
             className="text-sm text-[#E5E2E1]/60 hover:text-[#D4AF37] transition-colors"
           >
@@ -131,14 +128,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <button 
+          <button
             onClick={handleGoogle}
             className="w-full bg-white hover:bg-gray-100 text-black font-bold py-2.5 px-4 flex items-center justify-center gap-3 transition-colors"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
             Đăng nhập bằng Google
           </button>
-          <button 
+          <button
             onClick={handleFacebook}
             className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-bold py-2.5 px-4 flex items-center justify-center gap-3 transition-colors"
           >

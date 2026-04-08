@@ -3,8 +3,7 @@ import { Outlet, Link, useLocation } from 'react-router-dom';
 import KimQuyMascot from './KimQuyMascot';
 import ScrollToTop from './ScrollToTop';
 import LoginModal from './LoginModal';
-import { auth, logOut } from '../firebase';
-import { onAuthStateChanged, User } from 'firebase/auth';
+import { getCurrentUser, logout, onAuthStateChanged, type User } from '../auth';
 
 export default function Layout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -13,7 +12,7 @@ export default function Layout() {
   const location = useLocation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged((currentUser) => {
       setUser(currentUser);
     });
     return () => unsubscribe();
@@ -36,7 +35,7 @@ export default function Layout() {
       {/* TopAppBar */}
       <header className="fixed top-0 left-0 w-full z-50 flex justify-between items-center px-6 py-2 bg-[#131313]/80 backdrop-blur-md border-b border-[#D4AF37]/20 shadow-[0_10px_30px_rgba(0,0,0,0.8)]">
         <div className="flex items-center gap-4">
-          <button 
+          <button
             onClick={toggleSidebar}
             className="p-2 text-[#D4AF37] hover:bg-[#8B0000]/20 transition-all duration-300 scale-95 active:scale-90 lg:hidden"
           >
@@ -52,11 +51,10 @@ export default function Layout() {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`font-sans font-extrabold uppercase tracking-widest text-xs xl:text-sm transition-colors whitespace-nowrap ${
-                  location.pathname === link.path
+                className={`font-sans font-extrabold uppercase tracking-widest text-xs xl:text-sm transition-colors whitespace-nowrap ${location.pathname === link.path
                     ? 'text-[#D4AF37] border-b-2 border-[#D4AF37] pb-1'
                     : 'text-[#E5E2E1]/60 hover:text-[#D4AF37]'
-                }`}
+                  }`}
               >
                 {link.label}
               </Link>
@@ -68,7 +66,7 @@ export default function Layout() {
                 <p className="text-[#D4AF37] text-xs font-bold">{user.displayName || user.email}</p>
               </div>
               <button
-                onClick={logOut}
+                onClick={logout}
                 className="bg-[#8B0000] hover:bg-[#A00000] text-[#D4AF37] font-bold py-1.5 px-3 text-xs uppercase tracking-wider transition-colors border border-[#D4AF37]/50"
               >
                 Đăng Xuất
@@ -87,16 +85,15 @@ export default function Layout() {
 
       {/* Sidebar Navigation (Mobile Only) */}
       <aside
-        className={`fixed inset-y-0 left-0 z-[60] flex flex-col h-full w-80 bg-[#131313] border-r border-[#D4AF37]/30 shadow-[20px_0_40px_rgba(0,0,0,0.6)] transform transition-transform duration-500 lg:hidden ${
-          isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
-        }`}
+        className={`fixed inset-y-0 left-0 z-[60] flex flex-col h-full w-80 bg-[#131313] border-r border-[#D4AF37]/30 shadow-[20px_0_40px_rgba(0,0,0,0.6)] transform transition-transform duration-500 lg:hidden ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'
+          }`}
       >
         <div className="p-8 border-b border-[#D4AF37]/20 pt-24">
           <div className="py-2">
             <img src="/img/logo-removebg-preview.png" alt="Hào Khí Đại Việt Logo" className="h-28 md:h-36 object-contain drop-shadow-[0_2px_4px_rgba(139,0,0,0.8)]" />
           </div>
           {isSidebarOpen && (
-            <button 
+            <button
               onClick={toggleSidebar}
               className="absolute top-6 right-6 text-[#D4AF37] lg:hidden"
             >
@@ -112,11 +109,10 @@ export default function Layout() {
                 <Link
                   to={link.path}
                   onClick={() => setIsSidebarOpen(false)}
-                  className={`flex items-center gap-4 px-6 py-4 transition-all duration-500 font-sans font-extrabold text-lg group ${
-                    location.pathname === link.path
+                  className={`flex items-center gap-4 px-6 py-4 transition-all duration-500 font-sans font-extrabold text-lg group ${location.pathname === link.path
                       ? 'bg-[#8B0000] text-[#D4AF37] font-bold border-l-4 border-[#D4AF37]'
                       : 'text-[#E5E2E1] hover:bg-[#1C1B1B] hover:pl-8'
-                  }`}
+                    }`}
                 >
                   <span className="material-symbols-outlined text-[#D4AF37]">{link.icon}</span>
                   <span>{link.label}</span>
@@ -132,7 +128,7 @@ export default function Layout() {
 
       {/* Overlay for mobile sidebar */}
       {isSidebarOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 z-[55] lg:hidden"
           onClick={toggleSidebar}
         ></div>
@@ -141,7 +137,7 @@ export default function Layout() {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col pt-16 pb-16 lg:pb-0">
         <Outlet />
-        
+
         {/* Footer */}
         <footer className="bg-[#131313] border-t border-[#D4AF37]/10 py-12 mt-auto relative overflow-hidden">
           <div className="absolute inset-0 opacity-5 pointer-events-none">
@@ -176,9 +172,8 @@ export default function Layout() {
           <Link
             key={link.path}
             to={link.path}
-            className={`flex flex-col items-center p-1 pt-2 pb-1 flex-1 ${
-              location.pathname === link.path ? 'text-[#D4AF37]' : 'text-[#E5E2E1]/60 hover:text-[#D4AF37]'
-            }`}
+            className={`flex flex-col items-center p-1 pt-2 pb-1 flex-1 ${location.pathname === link.path ? 'text-[#D4AF37]' : 'text-[#E5E2E1]/60 hover:text-[#D4AF37]'
+              }`}
           >
             <span className="material-symbols-outlined text-lg mb-0.5">{link.icon}</span>
             <span className="text-[8px] font-bold uppercase tracking-wider">{link.label}</span>
