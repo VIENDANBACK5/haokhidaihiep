@@ -65,8 +65,18 @@ export default function KimQuyMascot() {
 
   useEffect(() => {
     const initAI = async () => {
+      // Check if Gemini API key is configured
+      const apiKey = process.env.GEMINI_API_KEY;
+      if (!apiKey || apiKey === 'MY_GEMINI_API_KEY') {
+        console.warn('Gemini API key not configured. AI chat disabled.');
+        setMessages([
+          { role: 'model', text: 'Xin chào! Bản thần hiện chưa được kích hoạt. Cần cấu hình Gemini API key để sử dụng tính năng trò chuyện.' }
+        ]);
+        return;
+      }
+
       try {
-        const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+        const ai = new GoogleGenAI({ apiKey });
         chatRef.current = ai.chats.create({
           model: "gemini-3-flash-preview",
           config: {
@@ -88,6 +98,9 @@ Logic Hành động:
         });
       } catch (error) {
         console.error("Failed to initialize AI:", error);
+        setMessages([
+          { role: 'model', text: 'Thiên cơ bất khả lộ... (Lỗi khởi tạo AI)' }
+        ]);
       }
     };
     initAI();
@@ -100,11 +113,20 @@ Logic Hành động:
   }, [messages, isChatOpen]);
 
   const handleSend = async () => {
-    if (!input.trim() || isLoading || !chatRef.current) return;
+    if (!input.trim() || isLoading) return;
 
     const userMsg = input.trim();
     setInput('');
     setMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    
+    if (!chatRef.current) {
+      setMessages(prev => [...prev, { 
+        role: 'model', 
+        text: 'Bản thần chưa được kích hoạt. Vui lòng cấu hình Gemini API key trong file .env.local' 
+      }]);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -176,8 +198,8 @@ Logic Hành động:
                 {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
                     <div className={`max-w-[85%] p-3 rounded-lg text-sm font-body leading-relaxed shadow-md whitespace-pre-wrap ${msg.role === 'user'
-                        ? 'bg-[#D4AF37] text-[#131313] rounded-br-none font-medium'
-                        : 'bg-[#1C1B1B] text-[#E5E2E1] border border-[#D4AF37]/30 rounded-bl-none italic'
+                      ? 'bg-[#D4AF37] text-[#131313] rounded-br-none font-medium'
+                      : 'bg-[#1C1B1B] text-[#E5E2E1] border border-[#D4AF37]/30 rounded-bl-none italic'
                       }`}>
                       {msg.text}
                     </div>

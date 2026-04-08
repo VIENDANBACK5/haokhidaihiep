@@ -45,27 +45,49 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   };
 
   const handleGoogle = async () => {
+    setError('');
+    setLoading(true);
     try {
       const user = await signInWithGoogle();
       if (user) onClose();
     } catch (err: any) {
-      setError('Lỗi đăng nhập Google.');
+      console.error('Google login error:', err);
+      if (err.code === 'auth/popup-blocked') {
+        setError('Popup bị chặn. Vui lòng cho phép popup trong trình duyệt.');
+      } else if (err.code === 'auth/unauthorized-domain') {
+        setError('Domain chưa được cấu hình trong Firebase Console.');
+      } else {
+        setError('Lỗi đăng nhập Google: ' + (err.message || 'Vui lòng thử lại'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleFacebook = async () => {
+    setError('');
+    setLoading(true);
     try {
       const user = await signInWithFacebook();
       if (user) onClose();
     } catch (err: any) {
-      setError('Lỗi đăng nhập Facebook. Vui lòng kiểm tra cấu hình Firebase.');
+      console.error('Facebook login error:', err);
+      if (err.code === 'auth/popup-blocked') {
+        setError('Popup bị chặn. Vui lòng cho phép popup trong trình duyệt.');
+      } else if (err.code === 'auth/account-exists-with-different-credential') {
+        setError('Email đã được dùng với phương thức đăng nhập khác.');
+      } else {
+        setError('Lỗi đăng nhập Facebook: ' + (err.message || 'Kiểm tra cấu hình Firebase'));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
       <div className="bg-[#131313] border border-[#D4AF37]/50 shadow-[0_0_30px_rgba(212,175,55,0.15)] w-full max-w-md p-8 relative">
-        <button 
+        <button
           onClick={onClose}
           className="absolute top-4 right-4 text-[#E5E2E1]/60 hover:text-[#D4AF37] transition-colors"
         >
@@ -85,8 +107,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#E5E2E1]/60 mb-2">Email</label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -96,8 +118,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
           <div>
             <label className="block text-xs uppercase tracking-widest text-[#E5E2E1]/60 mb-2">Mật khẩu</label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -105,9 +127,9 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               placeholder="••••••••"
             />
           </div>
-          
-          <button 
-            type="submit" 
+
+          <button
+            type="submit"
             disabled={loading}
             className="w-full bg-[#8B0000] hover:bg-[#A00000] text-[#D4AF37] font-bold py-3 uppercase tracking-widest transition-colors border border-[#D4AF37]/30 mt-2 disabled:opacity-50"
           >
@@ -116,7 +138,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </form>
 
         <div className="mt-4 text-center">
-          <button 
+          <button
             onClick={() => { setIsRegister(!isRegister); setError(''); }}
             className="text-sm text-[#E5E2E1]/60 hover:text-[#D4AF37] transition-colors"
           >
@@ -131,14 +153,14 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         </div>
 
         <div className="flex flex-col gap-3">
-          <button 
+          <button
             onClick={handleGoogle}
             className="w-full bg-white hover:bg-gray-100 text-black font-bold py-2.5 px-4 flex items-center justify-center gap-3 transition-colors"
           >
             <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" className="w-5 h-5" />
             Đăng nhập bằng Google
           </button>
-          <button 
+          <button
             onClick={handleFacebook}
             className="w-full bg-[#1877F2] hover:bg-[#166FE5] text-white font-bold py-2.5 px-4 flex items-center justify-center gap-3 transition-colors"
           >
